@@ -16,10 +16,13 @@ struct MainView: View {
     @State private var isShowingScanner = false
     @State private var isShowingCopyConfirmation: Bool = false
     #if targetEnvironment(simulator)
-        @State private var resultString: String = "Hello, World! I'm a bunch of data from a QR code!"
+    @State private var resultType: String = "org.iso.qrcode"
+    @State private var resultString: String = "Hello, World! I'm a bunch of data from a QR code!"
     #else
-        @SceneStorage("resultString")
-        private var resultString: String = ""
+    @SceneStorage("resultString")
+    private var resultString: String = ""
+    @SceneStorage("resultType")
+    private var resultType: String = ""
     #endif
     let overlayColor = Color(UIColor.secondarySystemBackground)
     let clipboard = UIPasteboard.general
@@ -30,7 +33,7 @@ struct MainView: View {
         switch result {
         case .success(let result):
             resultString = result.string
-            print(resultString)
+            resultType = result.type.rawValue
         case .failure(let error):
             print("Scanning failed: \(error.localizedDescription)")
         }
@@ -55,6 +58,8 @@ struct MainView: View {
                     .cornerRadius(20)
             }
             VStack {
+                Text("Code type: \(resultType.uppercased())")
+                    .font(.headline)
                 Text("Code data:")
                     .font(.headline)
                 
@@ -93,13 +98,14 @@ struct MainView: View {
                             .frame(maxWidth: 20)
                         Button("Clear", role: .destructive) {
                             resultString = ""
+                            resultType = ""
                         }
                         .font(.title2)
                     }
                 }
             }
             .sheet(isPresented: $isShowingScanner) {
-                CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
+                CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
             }
         }
     }
