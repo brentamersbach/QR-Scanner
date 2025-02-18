@@ -57,10 +57,13 @@ struct MainView: View {
             VStack {
                 Text("Code data:")
                     .font(.headline)
+                
                 ScrollView {
+                    Divider().opacity(0)
                     if resultString.lengthOfBytes(using: .utf8) > 0 {
                         Text(resultString)
                             .monospaced()
+                            .padding(.top, 16)
                             .padding(.leading, 16)
                             .padding(.trailing, 16)
                     } else {
@@ -70,6 +73,8 @@ struct MainView: View {
                             .padding(.trailing, 16)
                     }
                 }
+                .border(overlayColor, width: 2)
+                
                 Button(action: {
                     isShowingScanner = true
                 }) {
@@ -77,6 +82,7 @@ struct MainView: View {
                         .font(.title)
                 }
                 .padding(16)
+                
                 if resultString.lengthOfBytes(using: .utf8) > 0 {
                     HStack(spacing: 16) {
                         Button("Copy") {
@@ -93,7 +99,7 @@ struct MainView: View {
                 }
             }
             .sheet(isPresented: $isShowingScanner) {
-                CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded], simulatedData: "Berry cat is the cattest cat", completion: handleScan)
+                CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
             }
         }
     }
