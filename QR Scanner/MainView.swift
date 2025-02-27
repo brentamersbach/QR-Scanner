@@ -20,7 +20,7 @@ struct MainView: View {
     @State private var resultString: String = "Hello, World! I'm a bunch of data from a QR code!"
     @State private var resultSymbolVersion: String = "3"
     @State private var resultMaskPattern: String = "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
-    @State private var resultErrorCorrectionLevel: String = "M"
+    @State private var resultErrorCorrectionLevel: String = "M - 15%"
     
     #else
     @SceneStorage("resultString")
@@ -34,6 +34,9 @@ struct MainView: View {
     @SceneStorage("resultErrorCorrectionLevel")
     private var resultErrorCorrectionLevel: String = ""
     #endif
+    
+    @SceneStorage("isShowingDetails")
+    private var isShowingDetails = true
     
     let overlayColor = Color(UIColor.secondarySystemBackground)
     let clipboard = UIPasteboard.general
@@ -71,13 +74,13 @@ struct MainView: View {
                 
                 switch descriptor.errorCorrectionLevel {
                 case .levelL:
-                    resultErrorCorrectionLevel = "L"
+                    resultErrorCorrectionLevel = "L - 7%"
                 case .levelM:
-                    resultErrorCorrectionLevel = "M"
+                    resultErrorCorrectionLevel = "M - 15%"
                 case .levelQ:
-                    resultErrorCorrectionLevel = "Q"
+                    resultErrorCorrectionLevel = "Q - 25%"
                 case .levelH:
-                    resultErrorCorrectionLevel = "H"
+                    resultErrorCorrectionLevel = "H - 30%"
                 default:
                     resultErrorCorrectionLevel = "Unknown"
                 }
@@ -97,7 +100,7 @@ struct MainView: View {
 
     var body: some View {
         ZStack {
-            if isPreview || isShowingCopyConfirmation {
+            if isShowingCopyConfirmation {
                 Text("Text copied to clipboard")
                     .font(.title)
                     .padding()
@@ -106,44 +109,57 @@ struct MainView: View {
                     .cornerRadius(20)
             }
             VStack(alignment: .center) {
-                Text("Code Details")
-                    .font(.title)
-                    .padding([.top, .bottom], 8)
-                VStack (alignment: .leading, spacing: 5) {
-                    if !resultType.isEmpty {
-                        HStack {
-                            Text("Code type: ")
-                                .font(.headline)
-                            Text(resultType)
-                                .monospaced()
-                        }
+                Button(action: {
+                    withAnimation() {
+                        isShowingDetails.toggle()
                     }
-                    if resultType == "org.iso.QRCode" {
-                        HStack {
-                            Text("Symbol Version: ")
-                                .font(.headline)
-                            Text(resultSymbolVersion)
-                                .monospaced()
-                            Spacer()
-                        }
-                        VStack(alignment: .leading) {
-                                Text("Mask Pattern: ")
-                                    .font(.headline)
-                                Text(resultMaskPattern)
+                }) {
+                    Text("Code Details")
+                        .font(.title)
+                        .foregroundColor(.primary)
+                        .padding([.top, .bottom], 8)
+                }
+                if isShowingDetails {
+                    VStack (alignment: .leading, spacing: 5) {
+                        if !resultType.isEmpty {
+                            HStack {
+                                Text("Code type: ")
+                                    .fontWeight(.bold)
+                                Text(resultType)
                                     .monospaced()
                             }
-                        HStack {
-                            Text("Error Correction Level: ")
-                                .font(.headline)
-                            Text(resultErrorCorrectionLevel)
-                                .monospaced()
+                        }
+                        if resultType == "org.iso.QRCode" {
+                            HStack {
+                                Text("Symbol Version: ")
+                                    .fontWeight(.bold)
+                                Text(resultSymbolVersion)
+                                    .monospaced()
+                                Spacer()
+                            }
+                            VStack(alignment: .leading) {
+                                    Text("Mask Pattern: ")
+                                        .fontWeight(.bold)
+                                    Text(resultMaskPattern)
+                                        .monospaced()
+                                }
+                            HStack {
+                                Text("Error Correction Level: ")
+                                    .fontWeight(.bold)
+                                Text(resultErrorCorrectionLevel)
+                                    .monospaced()
+                            }
                         }
                     }
+                    .padding([.leading, .trailing], 8)
                 }
+                
+                Divider()
+                
                 Text("Code data:")
                     .font(.title)
                     .padding([.top, .bottom], 8)
-                
+                                
                 ScrollView {
                     Divider().opacity(0)
                     if resultString.lengthOfBytes(using: .utf8) > 0 {
@@ -182,8 +198,10 @@ struct MainView: View {
                     Spacer()
                         .frame(maxWidth: 20)
                     Button("Clear", role: .destructive) {
-                        resultString = ""
-                        resultType = ""
+                        withAnimation() {
+                            resultString = ""
+                            resultType = ""
+                        }
                     }
                     .font(.title2)
                 }
