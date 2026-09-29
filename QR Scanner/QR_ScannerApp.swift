@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import CodeScanner
 
 @main
 struct QR_ScannerApp: App {
+    @StateObject var globalData = GlobalData()
     var body: some Scene {
         WindowGroup {
             MainView()
+                .environmentObject(globalData)
         }
     }
 }

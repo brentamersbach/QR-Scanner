@@ -21,7 +21,8 @@ struct MainView: View {
     @State private var resultSymbolVersion: String = "3"
     @State private var resultMaskPattern: String = "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
     @State private var resultErrorCorrectionLevel: String = "M - 15%"
-    
+//    @State private var currentScan = ScanRecord(resultErrorCorrectionLevel: "org.iso.QRCode", resultMaskPattern: "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Hello, World! I'm a bunch of data from a QR code!", resultSymbolVersion: "3", date: Date())
+
     #else
     @SceneStorage("resultString")
     private var resultString: String = ""
@@ -34,10 +35,14 @@ struct MainView: View {
     @SceneStorage("resultErrorCorrectionLevel")
     private var resultErrorCorrectionLevel: String = ""
     #endif
-    
+
+    @EnvironmentObject var globalData: GlobalData
+
     @SceneStorage("isShowingDetails")
     private var isShowingDetails = true
-    
+
+    @State private var isShowingHistory = false
+
     let overlayColor = Color(UIColor.secondarySystemBackground)
     let clipboard = UIPasteboard.general
     
@@ -46,6 +51,7 @@ struct MainView: View {
        
         switch result {
         case .success(let result):
+            
             resultString = result.string
             resultType = result.type.rawValue
             if let descriptor = result.descriptor as? CIQRCodeDescriptor {
@@ -84,7 +90,11 @@ struct MainView: View {
                 default:
                     resultErrorCorrectionLevel = "Unknown"
                 }
+                let newRecord = ScanRecord(resultErrorCorrectionLevel: resultErrorCorrectionLevel, resultMaskPattern: resultMaskPattern, resultType: resultType, resultString: resultString, resultSymbolVersion: resultSymbolVersion, date: Date())
+                globalData.addScanRecord(for: newRecord)
+                globalData.currentScanIndex = globalData.scanHistory.endIndex
             }
+
         case .failure(let error):
             print("Scanning failed: \(error.localizedDescription)")
         }
@@ -180,18 +190,22 @@ struct MainView: View {
             .sheet(isPresented: $isShowingScanner) {
                 CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
             }
+//            .sheet(isPresented: $isShowingHistory) {
+//                HistoryView()
+//                    .environmentObject(history)
+//            }
         }
         VStack(alignment: .center) {
             Button(action: {
                 isShowingScanner = true
             }) {
-                Text("Scan QR Code")
+                Text("Scan Code")
                     .font(.title)
             }
             .padding(16)
             if resultString.lengthOfBytes(using: .utf8) > 0 {
                 HStack(spacing: 16) {
-                    Button("Copy") {
+                    Button("Copy Data") {
                         copyToClipboard(resultString)
                     }
                     .font(.title2)
@@ -206,12 +220,18 @@ struct MainView: View {
                     .font(.title2)
                 }
             }
+            Button("History") {
+                isShowingHistory = true
+            }
+            .font(.title2)
+            .padding(.top)
         }
     }
 }
 
 #Preview {
     MainView()
+        .environmentObject(GlobalData())
 }
 
 extension Data {
