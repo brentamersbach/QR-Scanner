@@ -10,32 +10,35 @@ import SwiftUI
 struct HistoryView: View {
 
     @Environment(\.dismiss) var dismiss
-    @StateObject var history: GlobalData = GlobalData()
+    @StateObject var globalData: GlobalData = GlobalData()
 
     var body: some View {
 
         List {
-            ForEach(history.scanHistory) { scanRecord in
+            ForEach(globalData.scanHistory) { scanRecord in
                 VStack {
-                    #if targetEnvironment(simulator)
-                    Text("1/24/1983, 10:30 AM")
-                        .bold()
-                    #else
+//                    #if targetEnvironment(simulator)
+//                    Text("1/24/1983, 10:30 AM")
+//                        .bold()
+//                    #else
                     Text(scanRecord.date.formatted())
                         .bold()
-                    #endif
+//                    #endif
                     Text(scanRecord.resultString.prefix(40))
                 }
                 .onTapGesture {
-                    
+
                 }
             }
         }
-        .environmentObject(history)
+        .environmentObject(globalData)
     }
 }
 
 #Preview {
     HistoryView()
-        .environmentObject(GlobalData())
+        .environmentObject(GlobalData(withDemoHistory: [
+            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
+            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
+        ]))
 }

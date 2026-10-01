@@ -8,36 +8,44 @@
 import SwiftUI
 
 struct CodeDetailsView: View {
-    var currentScan: ScanRecord
+//    var currentScan: ScanRecord
+    @SceneStorage("resultType")
+    var resultType: String = ""
+    @SceneStorage("resultSymbolVersion")
+    var resultSymbolVersion: String = ""
+    @SceneStorage("resultMaskPattern")
+    var resultMaskPattern: String = ""
+    @SceneStorage("resultErrorCorrectionLevel")
+    var resultErrorCorrectionLevel: String = ""
 
     var body: some View {
         VStack (alignment: .leading, spacing: 5) {
-            if !currentScan.resultType.isEmpty {
+            if !resultType.isEmpty {
                 HStack {
                     Text("Code type: ")
                         .fontWeight(.bold)
-                    Text(currentScan.resultType)
+                    Text(resultType)
                         .monospaced()
                 }
             }
-            if currentScan.resultType == "org.iso.QRCode" {
+            if resultType == "org.iso.QRCode" {
                 HStack {
                     Text("Symbol Version: ")
                         .fontWeight(.bold)
-                    Text(currentScan.resultSymbolVersion)
+                    Text(resultSymbolVersion)
                         .monospaced()
                     Spacer()
                 }
                 VStack(alignment: .leading) {
                     Text("Mask Pattern: ")
                         .fontWeight(.bold)
-                    Text(currentScan.resultMaskPattern)
+                    Text(resultMaskPattern)
                         .monospaced()
                 }
                 HStack {
                     Text("Error Correction Level: ")
                         .fontWeight(.bold)
-                    Text(currentScan.resultErrorCorrectionLevel)
+                    Text(resultErrorCorrectionLevel)
                         .monospaced()
                 }
             }
@@ -47,5 +55,5 @@ struct CodeDetailsView: View {
 }
 
 #Preview {
-    CodeDetailsView(currentScan: ScanRecord(resultErrorCorrectionLevel: "org.iso.QRCode", resultMaskPattern: "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Hello, World! I'm a bunch of data from a QR code!", resultSymbolVersion: "3", date: Date()))
+    CodeDetailsView(resultType: "org.iso.QRCode", resultSymbolVersion: "3", resultMaskPattern: "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0", resultErrorCorrectionLevel: "org.iso.QRCode")
 }

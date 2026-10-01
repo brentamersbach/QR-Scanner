@@ -22,6 +22,9 @@ class GlobalData: ObservableObject {
 //        self.scanHistory = []
 //        #endif
     }
+    init(withDemoHistory scanHistory: [ScanRecord]) {
+        self.scanHistory = scanHistory
+    }
 
     func addScanRecord(for record: ScanRecord) {
         self.scanHistory.append(record)

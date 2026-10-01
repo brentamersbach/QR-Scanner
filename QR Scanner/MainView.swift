@@ -15,17 +15,16 @@ struct MainView: View {
     
     @State private var isShowingScanner = false
     @State private var isShowingCopyConfirmation: Bool = false
-    #if targetEnvironment(simulator)
-    @State private var resultType: String = "org.iso.QRCode"
-    @State private var resultString: String = "Hello, World! I'm a bunch of data from a QR code!"
-    @State private var resultSymbolVersion: String = "3"
-    @State private var resultMaskPattern: String = "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
-    @State private var resultErrorCorrectionLevel: String = "M - 15%"
-//    @State private var currentScan = ScanRecord(resultErrorCorrectionLevel: "org.iso.QRCode", resultMaskPattern: "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Hello, World! I'm a bunch of data from a QR code!", resultSymbolVersion: "3", date: Date())
-
-    #else
+    
+//    #if targetEnvironment(simulator)
+//    @State private var resultType: String = "org.iso.QRCode"
+//    @State private var resultString: String = "Hello, World! I'm a bunch of data from a QR code!"
+//    @State private var resultSymbolVersion: String = "3"
+//    @State private var resultMaskPattern: String = "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
+//    @State private var resultErrorCorrectionLevel: String = "M - 15%"
+//    #else
     @SceneStorage("resultString")
-    private var resultString: String = ""
+    var resultString: String = ""
     @SceneStorage("resultType")
     private var resultType: String = ""
     @SceneStorage("resultSymbolVersion")
@@ -34,7 +33,8 @@ struct MainView: View {
     private var resultMaskPattern: String = ""
     @SceneStorage("resultErrorCorrectionLevel")
     private var resultErrorCorrectionLevel: String = ""
-    #endif
+//    @SceneStorage var currentScan: ScanRecord? = nil
+//    #endif
 
     @EnvironmentObject var globalData: GlobalData
 
@@ -130,38 +130,7 @@ struct MainView: View {
                         .padding([.top, .bottom], 8)
                 }
                 if isShowingDetails {
-                    VStack (alignment: .leading, spacing: 5) {
-                        if !resultType.isEmpty {
-                            HStack {
-                                Text("Code type: ")
-                                    .fontWeight(.bold)
-                                Text(resultType)
-                                    .monospaced()
-                            }
-                        }
-                        if resultType == "org.iso.QRCode" {
-                            HStack {
-                                Text("Symbol Version: ")
-                                    .fontWeight(.bold)
-                                Text(resultSymbolVersion)
-                                    .monospaced()
-                                Spacer()
-                            }
-                            VStack(alignment: .leading) {
-                                    Text("Mask Pattern: ")
-                                        .fontWeight(.bold)
-                                    Text(resultMaskPattern)
-                                        .monospaced()
-                                }
-                            HStack {
-                                Text("Error Correction Level: ")
-                                    .fontWeight(.bold)
-                                Text(resultErrorCorrectionLevel)
-                                    .monospaced()
-                            }
-                        }
-                    }
-                    .padding([.leading, .trailing], 8)
+                    CodeDetailsView(resultType: resultType, resultSymbolVersion: resultSymbolVersion, resultMaskPattern: resultMaskPattern, resultErrorCorrectionLevel: resultErrorCorrectionLevel)
                 }
                 
                 Divider()
@@ -172,7 +141,8 @@ struct MainView: View {
                                 
                 ScrollView {
                     Divider().opacity(0)
-                    if resultString.lengthOfBytes(using: .utf8) > 0 {
+
+                    if !resultString.isEmpty {
                         Text(resultString)
                             .monospaced()
                             .padding(.top, 16)
@@ -215,6 +185,9 @@ struct MainView: View {
                         withAnimation() {
                             resultString = ""
                             resultType = ""
+                            resultSymbolVersion = ""
+                            resultMaskPattern = ""
+                            resultErrorCorrectionLevel = ""
                         }
                     }
                     .font(.title2)
@@ -230,8 +203,11 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView()
-        .environmentObject(GlobalData())
+    MainView(resultString: "Sample Data 1")
+        .environmentObject(GlobalData(withDemoHistory: [
+            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
+            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
+        ]))
 }
 
 extension Data {
