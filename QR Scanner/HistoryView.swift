@@ -21,7 +21,7 @@ struct HistoryView: View {
 //                    Text("1/24/1983, 10:30 AM")
 //                        .bold()
 //                    #else
-                    Text(scanRecord.date.formatted())
+                    Text(scanRecord.date?.formatted() ?? "")
                         .bold()
 //                    #endif
                     Text(scanRecord.resultString.prefix(40))
@@ -38,7 +38,7 @@ struct HistoryView: View {
 #Preview {
     HistoryView()
         .environmentObject(GlobalData(withDemoHistory: [
-            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
-            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
+            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
+            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
         ]))
 }

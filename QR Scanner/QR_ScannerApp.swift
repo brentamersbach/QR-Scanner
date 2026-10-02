@@ -13,8 +13,13 @@ struct QR_ScannerApp: App {
     @StateObject var globalData = GlobalData()
     var body: some Scene {
         WindowGroup {
-            MainView()
-                .environmentObject(globalData)
+            if !globalData.scanHistory.isEmpty {
+                MainView(currentScan: globalData.scanHistory[globalData.currentScanIndex ?? 0])
+                    .environmentObject(globalData)
+            } else {
+                MainView()
+                    .environmentObject(globalData)
+            }
         }
     }
 }

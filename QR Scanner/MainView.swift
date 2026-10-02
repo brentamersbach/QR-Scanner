@@ -15,14 +15,7 @@ struct MainView: View {
     
     @State private var isShowingScanner = false
     @State private var isShowingCopyConfirmation: Bool = false
-    
-//    #if targetEnvironment(simulator)
-//    @State private var resultType: String = "org.iso.QRCode"
-//    @State private var resultString: String = "Hello, World! I'm a bunch of data from a QR code!"
-//    @State private var resultSymbolVersion: String = "3"
-//    @State private var resultMaskPattern: String = "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
-//    @State private var resultErrorCorrectionLevel: String = "M - 15%"
-//    #else
+
     @SceneStorage("resultString")
     var resultString: String = ""
     @SceneStorage("resultType")
@@ -33,8 +26,7 @@ struct MainView: View {
     private var resultMaskPattern: String = ""
     @SceneStorage("resultErrorCorrectionLevel")
     private var resultErrorCorrectionLevel: String = ""
-//    @SceneStorage var currentScan: ScanRecord? = nil
-//    #endif
+    @State var currentScan: ScanRecord? = nil
 
     @EnvironmentObject var globalData: GlobalData
 
@@ -92,7 +84,9 @@ struct MainView: View {
                 }
                 let newRecord = ScanRecord(resultErrorCorrectionLevel: resultErrorCorrectionLevel, resultMaskPattern: resultMaskPattern, resultType: resultType, resultString: resultString, resultSymbolVersion: resultSymbolVersion, date: Date())
                 globalData.addScanRecord(for: newRecord)
-                globalData.currentScanIndex = globalData.scanHistory.endIndex
+                let newRecordIndex = globalData.scanHistory.endIndex - 1
+                globalData.currentScanIndex = newRecordIndex
+                currentScan = globalData.scanHistory[newRecordIndex]
             }
 
         case .failure(let error):
@@ -130,7 +124,7 @@ struct MainView: View {
                         .padding([.top, .bottom], 8)
                 }
                 if isShowingDetails {
-                    CodeDetailsView(resultType: resultType, resultSymbolVersion: resultSymbolVersion, resultMaskPattern: resultMaskPattern, resultErrorCorrectionLevel: resultErrorCorrectionLevel)
+                    CodeDetailsView(currentScan: currentScan ?? nil)
                 }
                 
                 Divider()
@@ -142,14 +136,14 @@ struct MainView: View {
                 ScrollView {
                     Divider().opacity(0)
 
-                    if !resultString.isEmpty {
-                        Text(resultString)
+                    if currentScan != nil {
+                        Text(currentScan?.resultString ?? "")
                             .monospaced()
                             .padding(.top, 16)
                             .padding(.leading, 16)
                             .padding(.trailing, 16)
                     } else {
-                        Text("Tap Scan QR Code to begin")
+                        Text("Tap Scan Code to begin")
                             .opacity(0.7)
                             .padding(.leading, 16)
                             .padding(.trailing, 16)
@@ -160,10 +154,6 @@ struct MainView: View {
             .sheet(isPresented: $isShowingScanner) {
                 CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
             }
-//            .sheet(isPresented: $isShowingHistory) {
-//                HistoryView()
-//                    .environmentObject(history)
-//            }
         }
         VStack(alignment: .center) {
             Button(action: {
@@ -173,7 +163,7 @@ struct MainView: View {
                     .font(.title)
             }
             .padding(16)
-            if resultString.lengthOfBytes(using: .utf8) > 0 {
+            if currentScan != nil {
                 HStack(spacing: 16) {
                     Button("Copy Data") {
                         copyToClipboard(resultString)
@@ -183,11 +173,7 @@ struct MainView: View {
                         .frame(maxWidth: 20)
                     Button("Clear", role: .destructive) {
                         withAnimation() {
-                            resultString = ""
-                            resultType = ""
-                            resultSymbolVersion = ""
-                            resultMaskPattern = ""
-                            resultErrorCorrectionLevel = ""
+                            currentScan = nil
                         }
                     }
                     .font(.title2)
@@ -203,11 +189,7 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView(resultString: "Sample Data 1")
-        .environmentObject(GlobalData(withDemoHistory: [
-            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
-            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
-        ]))
+    MainView(currentScan: ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()))
 }
 
 extension Data {
