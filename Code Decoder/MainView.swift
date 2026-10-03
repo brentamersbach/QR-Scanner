@@ -26,7 +26,6 @@ struct MainView: View {
 
     @SceneStorage("isShowingDetails")
     private var isShowingDetails = true
-
     @State private var isShowingHistory = false
 
     let overlayColor = Color(UIColor.secondarySystemBackground)
@@ -169,7 +168,7 @@ struct MainView: View {
                 CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, completion: handleScan)
             }
             .sheet(isPresented: $isShowingHistory) {
-                HistoryView()
+                HistoryView(multiSelection: [], selection: nil)
                     .environmentObject(globalData)
                     .onDisappear() {
                         if let newId = globalData.currentScanId {
@@ -213,7 +212,19 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView(currentScan: GlobalData().createScanHistory().first)
-        .environmentObject(GlobalData())
+    struct PreviewWrapper: View {
+        let globalData = GlobalData()
+        var demoRecords: [ScanRecord] { globalData.createScanHistory() }
+        var body: some View {
+            MainView(
+                currentScan: demoRecords.first,
+            )
+            .environmentObject(globalData)
+        }
+    }
+    return PreviewWrapper()
+
+//    MainView(currentScan: GlobalData().createScanHistory().first)
+//        .environmentObject(GlobalData())
 }
 

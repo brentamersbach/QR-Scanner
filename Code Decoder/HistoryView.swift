@@ -15,9 +15,24 @@ struct HistoryView: View {
     @Environment(\.modelContext) var modelContext
     @Query var scanHistory: [ScanRecord]
 
+    @State private var selectedScanRecord: ScanRecord? = nil
+    @State var multiSelection = Set<UUID>()
+
+    init(multiSelection: Set<UUID>, selection: ScanRecord?) {
+        self.multiSelection = multiSelection
+        self.selectedScanRecord = selection
+    }
+
+    func deleteScanRecord(at indexes: IndexSet) {
+        for index in indexes {
+            let scanToDelete = scanHistory[index]
+            modelContext.delete(scanToDelete)
+        }
+    }
+
     var body: some View {
         VStack {
-            List {
+            List(selection: $multiSelection) {
                 Section(content: {
                     ForEach(scanHistory) { scanRecord in
                         VStack {
@@ -34,6 +49,7 @@ struct HistoryView: View {
                             }
                         }
                     }
+                    .onDelete(perform: deleteScanRecord)
                 }, footer: {
                     Text("Previous Scans")
                         .font(.title2)
@@ -45,6 +61,9 @@ struct HistoryView: View {
                 #endif
             }
             .environmentObject(globalData)
+            .onChange(of: multiSelection) {
+                selectedScanRecord = scanHistory.first(where: {$0.id == multiSelection.sorted().first})
+            }
 
             Button("Done") {
                 dismiss()
@@ -57,14 +76,23 @@ struct HistoryView: View {
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: ScanRecord.self, configurations: config)
-    
+
     let demoRecords = GlobalData().createScanHistory()
     let context = container.mainContext
     for record in demoRecords {
         context.insert(record)
     }
-    
-    return HistoryView()
-        .modelContainer(container)
-        .environmentObject(GlobalData())
+    struct PreviewWrapper: View {
+        let container: ModelContainer
+        @State private var selectedScanRecord: ScanRecord? = nil
+        @State private var multiSelection = Set<UUID>()
+        
+        var body: some View {
+            HistoryView(multiSelection: multiSelection, selection: selectedScanRecord)
+                .modelContainer(container)
+                .environmentObject(GlobalData())
+        }
+    }
+
+    return PreviewWrapper(container: container)
 }

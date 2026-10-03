@@ -15,9 +15,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A4FB88CC2D603EF600DE9255 /* QR Scanner */ = {
+		A4FB88CC2D603EF600DE9255 /* Code Decoder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "QR Scanner";
+			path = "Code Decoder";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -37,7 +37,7 @@
 		A4FB88C12D603EF600DE9255 = {
 			isa = PBXGroup;
 			children = (
-				A4FB88CC2D603EF600DE9255 /* QR Scanner */,
+				A4FB88CC2D603EF600DE9255 /* Code Decoder */,
 				A4FB88CB2D603EF600DE9255 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,7 +66,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A4FB88CC2D603EF600DE9255 /* QR Scanner */,
+				A4FB88CC2D603EF600DE9255 /* Code Decoder */,
 			);
 			name = "Code Decoder";
 			packageProductDependencies = (
@@ -264,7 +264,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"QR Scanner/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Code Decoder/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to scan QR codes";
@@ -297,7 +297,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"QR Scanner/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Code Decoder/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to scan QR codes";

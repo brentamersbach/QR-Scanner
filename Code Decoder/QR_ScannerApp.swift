@@ -11,7 +11,6 @@ import SwiftData
 
 @main
 struct QR_ScannerApp: App {
-
     var body: some Scene {
         WindowGroup {
             MainView()
