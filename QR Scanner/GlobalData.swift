@@ -12,16 +12,13 @@ class GlobalData: ObservableObject {
     @Published var scanHistory: [ScanRecord]
     @Published var currentScanIndex: Int?
     let maxScanHistory: Int = 20
-    #if DEBUG
     var createDemoHistory = false
-    #endif
 
     init() {
         self.scanHistory = []
     }
 
     // This is only used for testing or in Xcode Previews
-    #if DEBUG
     convenience init(createDemoHistory: Bool) {
         self.init()
         if createDemoHistory {
@@ -31,7 +28,6 @@ class GlobalData: ObservableObject {
             ]
         }
     }
-    #endif
 
     // Prune size of scan history down to reasonable length
     func pruneScanHistory() {
@@ -40,6 +36,4 @@ class GlobalData: ObservableObject {
             scanHistory.removeSubrange(20...currentCount - 1)
         }
     }
-
-
 }
