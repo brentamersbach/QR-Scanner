@@ -7,6 +7,7 @@
 import Foundation
 import SwiftData
 
+/// A representation of the scan data as simple strings for use in views
 @Model
 class ScanRecord: Identifiable {
     @Attribute(.unique) private(set) var id: UUID = UUID()

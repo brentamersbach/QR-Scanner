@@ -16,83 +16,37 @@ struct MainView: View {
     }
     #endif
 
+    // Data model setup
     @Environment(\.modelContext) var modelContext
     @Query var scanHistory: [ScanRecord]
     @State private var isShowingScanner = false
     @State private var isShowingCopyConfirmation: Bool = false
     @State var currentScan: ScanRecord? = nil
+    @StateObject var scanProcessor: ScanProcessor = ScanProcessor()
 
-    @StateObject var globalData: GlobalData = GlobalData()
-
+    // State for showing the code details
     @SceneStorage("isShowingDetails")
     private var isShowingDetails = true
     @State private var isShowingHistory = false
 
+    // Config for copy function
     let overlayColor = Color(UIColor.secondarySystemBackground)
     let clipboard = UIPasteboard.general
     
     func handleScan(result: Result<ScanResult, ScanError>) {
         isShowingScanner = false
 
-        var resultString: String = ""
-        var resultType: String = ""
-        var resultSymbolVersion: String = ""
-        var resultMaskPattern: String = ""
-        var resultErrorCorrectionLevel: String = ""
-
         switch result {
         case .success(let result):
-            resultString = result.string
-            resultType = result.type.rawValue
-            if let descriptor = result.descriptor as? CIQRCodeDescriptor {
-                resultSymbolVersion = String(descriptor.symbolVersion)
+            // Process new scan and add to history
+            let newRecord = scanProcessor.processScan(for: result)
+            modelContext.insert(newRecord)
 
-                // Map numeric mask pattern id to string
-                switch descriptor.maskPattern {
-                case 0:
-                    resultMaskPattern = "(row + column) mod 2 == 0"
-                case 1:
-                    resultMaskPattern = "(row) mod 2 == 0"
-                case 2:
-                    resultMaskPattern = "(column) mod 3 == 0"
-                case 3:
-                    resultMaskPattern = "(row + column) mod 3 == 0"
-                case 4:
-                    resultMaskPattern = "( floor(row / 2) + floor(column / 3) ) mod 2 == 0"
-                case 5:
-                    resultMaskPattern = "((row * column) mod 2) + ((row * column) mod 3) == 0"
-                case 6:
-                    resultMaskPattern = "( ((row * column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
-                case 7:
-                    resultMaskPattern = "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0"
-                default:
-                    resultMaskPattern = "Unknown"
-                }
-
-                // Map numeric error correction level to string
-                switch descriptor.errorCorrectionLevel {
-                case .levelL:
-                    resultErrorCorrectionLevel = "L - 7%"
-                case .levelM:
-                    resultErrorCorrectionLevel = "M - 15%"
-                case .levelQ:
-                    resultErrorCorrectionLevel = "Q - 25%"
-                case .levelH:
-                    resultErrorCorrectionLevel = "H - 30%"
-                default:
-                    resultErrorCorrectionLevel = "Unknown"
-                }
-
-                // Add new scan to history
-                let newRecord = ScanRecord(resultErrorCorrectionLevel: resultErrorCorrectionLevel, resultMaskPattern: resultMaskPattern, resultType: resultType, resultString: resultString, resultSymbolVersion: resultSymbolVersion, date: Date())
-                modelContext.insert(newRecord)
-
-                // Update ID of current scan to display to the new scan
-                globalData.currentScanId = newRecord.id.uuidString
-                currentScan = scanHistory.first(where: { scan in
-                    scan.id == newRecord.id
-                })
-            }
+            // Update ID of current scan to display to the new scan
+            scanProcessor.currentScanId = newRecord.id.uuidString
+            currentScan = scanHistory.first(where: { scan in
+                scan.id == newRecord.id
+            })
 
         case .failure(let error):
             print("Scanning failed: \(error.localizedDescription)")
@@ -169,9 +123,9 @@ struct MainView: View {
             }
             .sheet(isPresented: $isShowingHistory) {
                 HistoryView(multiSelection: [], selection: nil)
-                    .environmentObject(globalData)
+                    .environmentObject(scanProcessor)
                     .onDisappear() {
-                        if let newId = globalData.currentScanId {
+                        if let newId = scanProcessor.currentScanId {
                             currentScan = scanHistory.first(where: { scan in
                                 scan.id.uuidString == newId
                             })
@@ -213,7 +167,7 @@ struct MainView: View {
 
 #Preview {
     struct PreviewWrapper: View {
-        let globalData = GlobalData()
+        let globalData = ScanProcessor()
         var demoRecords: [ScanRecord] { globalData.createScanHistory() }
         var body: some View {
             MainView(
@@ -223,8 +177,5 @@ struct MainView: View {
         }
     }
     return PreviewWrapper()
-
-//    MainView(currentScan: GlobalData().createScanHistory().first)
-//        .environmentObject(GlobalData())
 }
 

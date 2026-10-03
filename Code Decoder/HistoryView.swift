@@ -8,10 +8,11 @@
 import SwiftUI
 import SwiftData
 
+/// A view which displays a list of previously scanned data for recall
 struct HistoryView: View {
 
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var globalData: GlobalData
+    @EnvironmentObject var globalData: ScanProcessor
     @Environment(\.modelContext) var modelContext
     @Query var scanHistory: [ScanRecord]
 
@@ -31,11 +32,11 @@ struct HistoryView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack() {
             List(selection: $multiSelection) {
                 Section(content: {
                     ForEach(scanHistory) { scanRecord in
-                        VStack {
+                        VStack(alignment: .leading) {
                             Text(scanRecord.date?.formatted() ?? "")
                                 .bold()
                             Text(scanRecord.resultString.prefix(40))
@@ -50,7 +51,7 @@ struct HistoryView: View {
                         }
                     }
                     .onDelete(perform: deleteScanRecord)
-                }, footer: {
+                }, header: {
                     Text("Previous Scans")
                         .font(.title2)
                 })
@@ -70,6 +71,7 @@ struct HistoryView: View {
             }
             .font(.title)
         }
+        .padding(10)
     }
 }
 
@@ -77,7 +79,7 @@ struct HistoryView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: ScanRecord.self, configurations: config)
 
-    let demoRecords = GlobalData().createScanHistory()
+    let demoRecords = ScanProcessor().createScanHistory()
     let context = container.mainContext
     for record in demoRecords {
         context.insert(record)
@@ -90,7 +92,7 @@ struct HistoryView: View {
         var body: some View {
             HistoryView(multiSelection: multiSelection, selection: selectedScanRecord)
                 .modelContainer(container)
-                .environmentObject(GlobalData())
+                .environmentObject(ScanProcessor())
         }
     }
 

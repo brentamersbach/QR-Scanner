@@ -47,5 +47,5 @@ struct CodeDetailsView: View {
 }
 
 #Preview {
-    CodeDetailsView(currentScan: GlobalData().createScanHistory().first)
+    CodeDetailsView(currentScan: ScanProcessor().createScanHistory().first)
 }
