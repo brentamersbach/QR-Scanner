@@ -9,36 +9,43 @@ import SwiftUI
 
 struct HistoryView: View {
 
-    @Environment(\.dismiss) var dismiss
-    @StateObject var globalData: GlobalData = GlobalData()
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var globalData: GlobalData
 
     var body: some View {
+        Section {
+            List {
+                ForEach(globalData.scanHistory) { scanRecord in
+                    VStack {
 
-        List {
-            ForEach(globalData.scanHistory) { scanRecord in
-                VStack {
-//                    #if targetEnvironment(simulator)
-//                    Text("1/24/1983, 10:30 AM")
-//                        .bold()
-//                    #else
-                    Text(scanRecord.date?.formatted() ?? "")
-                        .bold()
-//                    #endif
-                    Text(scanRecord.resultString.prefix(40))
-                }
-                .onTapGesture {
+                        Text(scanRecord.date?.formatted() ?? "")
+                            .bold()
+                        Text(scanRecord.resultString.prefix(40))
+                    }
+                    .onTapGesture {
+                        if let selectedIndex = globalData.scanHistory.firstIndex(where: { scanToCheck in
+                            return scanToCheck.id == scanRecord.id
+                        }) {
+                            globalData.currentScanIndex = selectedIndex
+                            dismiss()
+                        }
 
+                    }
                 }
             }
+            .environmentObject(globalData)
         }
-        .environmentObject(globalData)
+        Section {
+            Button("Done") {
+                dismiss()
+            }
+            .font(.title)
+        }
+
     }
 }
 
 #Preview {
     HistoryView()
-        .environmentObject(GlobalData(withDemoHistory: [
-            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
-            ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
-        ]))
+        .environmentObject(GlobalData(createDemoHistory: true))
 }

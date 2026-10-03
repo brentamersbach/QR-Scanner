@@ -10,7 +10,12 @@ import CodeScanner
 
 @main
 struct QR_ScannerApp: App {
+    #if DEBUG
+    @StateObject var globalData = GlobalData(createDemoHistory: true)
+    #else
     @StateObject var globalData = GlobalData()
+    #endif
+
     var body: some Scene {
         WindowGroup {
             if !globalData.scanHistory.isEmpty {

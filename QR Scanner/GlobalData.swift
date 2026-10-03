@@ -11,6 +11,7 @@ import CodeScanner
 class GlobalData: ObservableObject {
     @Published var scanHistory: [ScanRecord]
     @Published var currentScanIndex: Int?
+    let maxScanHistory: Int = 20
     #if DEBUG
     var createDemoHistory = false
     #endif
@@ -19,33 +20,26 @@ class GlobalData: ObservableObject {
         self.scanHistory = []
     }
 
+    // This is only used for testing or in Xcode Previews
+    #if DEBUG
     convenience init(createDemoHistory: Bool) {
         self.init()
         if createDemoHistory {
             self.scanHistory = [
-                ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()),
-                ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
+                ScanRecord(resultErrorCorrectionLevel: "M - 15%", resultMaskPattern: "(row + column) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "2", date: Date()),
+                ScanRecord(resultErrorCorrectionLevel: "M - 15%", resultMaskPattern: "(row + column) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
             ]
         }
     }
-    #if DEBUG
-    init(withDemoHistory scanHistory: [ScanRecord]) {
-        self.scanHistory = scanHistory
-    }
     #endif
 
-    func addScanRecord(for record: ScanRecord) {
-        self.scanHistory.append(record)
-    }
-    func getLatestRecord() -> ScanRecord? {
-        return self.scanHistory.last
-    }
-    func getCurrentScan() -> ScanRecord? {
-        if currentScanIndex != nil {
-            return self.scanHistory[self.currentScanIndex!]
-        }
-        else {
-            return nil
+    // Prune size of scan history down to reasonable length
+    func pruneScanHistory() {
+        let currentCount = scanHistory.count
+        if currentCount > maxScanHistory {
+            scanHistory.removeSubrange(20...currentCount - 1)
         }
     }
+
+
 }

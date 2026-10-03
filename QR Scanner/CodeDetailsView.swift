@@ -57,7 +57,5 @@ struct CodeDetailsView: View {
 }
 
 #Preview {
-//    CodeDetailsView(resultType: "org.iso.QRCode", resultSymbolVersion: "3", resultMaskPattern: "( ((row + column) mod 2) + ((row * column) mod 3) ) mod 2 == 0", resultErrorCorrectionLevel: "org.iso.QRCode")
-    CodeDetailsView(currentScan: ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()))
-//        .environment(\.ScanRecord, ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "QR", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()))
+    CodeDetailsView(currentScan: GlobalData(createDemoHistory: true).scanHistory[0])
 }

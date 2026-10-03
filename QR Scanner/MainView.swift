@@ -49,6 +49,7 @@ struct MainView: View {
             if let descriptor = result.descriptor as? CIQRCodeDescriptor {
                 resultSymbolVersion = String(descriptor.symbolVersion)
 
+                // Map numeric mask pattern id to string
                 switch descriptor.maskPattern {
                 case 0:
                     resultMaskPattern = "(row + column) mod 2 == 0"
@@ -69,7 +70,8 @@ struct MainView: View {
                 default:
                     resultMaskPattern = "Unknown"
                 }
-                
+
+                // Map numeric error correction level to string
                 switch descriptor.errorCorrectionLevel {
                 case .levelL:
                     resultErrorCorrectionLevel = "L - 7%"
@@ -82,11 +84,18 @@ struct MainView: View {
                 default:
                     resultErrorCorrectionLevel = "Unknown"
                 }
+
+                // Append new scan to history
                 let newRecord = ScanRecord(resultErrorCorrectionLevel: resultErrorCorrectionLevel, resultMaskPattern: resultMaskPattern, resultType: resultType, resultString: resultString, resultSymbolVersion: resultSymbolVersion, date: Date())
-                globalData.addScanRecord(for: newRecord)
+                globalData.scanHistory.append(newRecord)
+
+                // Update index of current scan to display to the new scan
                 let newRecordIndex = globalData.scanHistory.endIndex - 1
                 globalData.currentScanIndex = newRecordIndex
                 currentScan = globalData.scanHistory[newRecordIndex]
+
+                // Prune size of scan history
+                globalData.pruneScanHistory()
             }
 
         case .failure(let error):
@@ -154,6 +163,15 @@ struct MainView: View {
             .sheet(isPresented: $isShowingScanner) {
                 CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
             }
+            .sheet(isPresented: $isShowingHistory) {
+                HistoryView()
+                    .environmentObject(globalData)
+                    .onDisappear() {
+                        if let newIndex = globalData.currentScanIndex {
+                            currentScan = globalData.scanHistory[newIndex]
+                        }
+                    }
+            }
         }
         VStack(alignment: .center) {
             Button(action: {
@@ -189,7 +207,8 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView(currentScan: ScanRecord(resultErrorCorrectionLevel: "Whatever", resultMaskPattern: "Something", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "1", date: Date()))
+    MainView(currentScan: GlobalData(createDemoHistory: true).scanHistory[0])
+        .environmentObject(GlobalData(createDemoHistory: true))
 }
 
 extension Data {
