@@ -8,17 +8,7 @@
 import SwiftUI
 
 struct CodeDetailsView: View {
-//    var currentScan: ScanRecord
-//    @SceneStorage("resultType")
-//    var resultType: String = ""
-//    @SceneStorage("resultSymbolVersion")
-//    var resultSymbolVersion: String = ""
-//    @SceneStorage("resultMaskPattern")
-//    var resultMaskPattern: String = ""
-//    @SceneStorage("resultErrorCorrectionLevel")
-//    var resultErrorCorrectionLevel: String = ""
     var currentScan: ScanRecord?
-//    @EnvironmentObject private var globalData: GlobalData
 
     var body: some View {
         VStack (alignment: .leading, spacing: 5) {
@@ -57,5 +47,5 @@ struct CodeDetailsView: View {
 }
 
 #Preview {
-    CodeDetailsView(currentScan: GlobalData(createDemoHistory: true).scanHistory[0])
+    CodeDetailsView(currentScan: GlobalData().createScanHistory().first)
 }

@@ -5,15 +5,17 @@
 //  Created by Brent Amersbach on 8/10/26.
 //
 import Foundation
+import SwiftData
 
-struct ScanRecord: Identifiable {
-    let id: UUID = UUID()
-    let date: Date?
-    let resultErrorCorrectionLevel: String
-    let resultMaskPattern: String
-    let resultType: String
-    let resultString: String
-    let resultSymbolVersion: String
+@Model
+class ScanRecord: Identifiable {
+    @Attribute(.unique) private(set) var id: UUID = UUID()
+    private(set) var date: Date?
+    private(set) var resultErrorCorrectionLevel: String
+    private(set) var resultMaskPattern: String
+    private(set) var resultType: String
+    private(set) var resultString: String
+    private(set) var resultSymbolVersion: String
 
     init(resultErrorCorrectionLevel: String, resultMaskPattern: String, resultType: String, resultString: String, resultSymbolVersion: String, date: Date?) {
         self.resultErrorCorrectionLevel = resultErrorCorrectionLevel

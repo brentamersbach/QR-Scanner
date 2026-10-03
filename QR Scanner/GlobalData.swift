@@ -7,26 +7,24 @@
 
 import Foundation
 import CodeScanner
+import SwiftData
 
 class GlobalData: ObservableObject {
+
     @Published var scanHistory: [ScanRecord]
     @Published var currentScanIndex: Int?
+    @Published var currentScanId: String?
     let maxScanHistory: Int = 20
-    var createDemoHistory = false
 
     init() {
         self.scanHistory = []
     }
 
-    // This is only used for testing or in Xcode Previews
-    convenience init(createDemoHistory: Bool) {
-        self.init()
-        if createDemoHistory {
-            self.scanHistory = [
-                ScanRecord(resultErrorCorrectionLevel: "M - 15%", resultMaskPattern: "(row + column) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "2", date: Date()),
-                ScanRecord(resultErrorCorrectionLevel: "M - 15%", resultMaskPattern: "(row + column) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
-            ]
-        }
+    func createScanHistory() -> [ScanRecord] {
+        return [
+            ScanRecord(resultErrorCorrectionLevel: "M - 15%", resultMaskPattern: "(row + column) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Sample Data 1", resultSymbolVersion: "2", date: Date()),
+            ScanRecord(resultErrorCorrectionLevel: "M - 15%", resultMaskPattern: "(row + column) mod 2 == 0", resultType: "org.iso.QRCode", resultString: "Sample Data 2", resultSymbolVersion: "2", date: Date())
+        ]
     }
 
     // Prune size of scan history down to reasonable length

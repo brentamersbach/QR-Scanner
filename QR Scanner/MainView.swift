@@ -7,28 +7,22 @@
 
 import SwiftUI
 import CodeScanner
+import SwiftData
 
 struct MainView: View {
+    #if DEBUG
     var isPreview: Bool {
         return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
     }
-    
+    #endif
+
+    @Environment(\.modelContext) var modelContext
+    @Query var scanHistory: [ScanRecord]
     @State private var isShowingScanner = false
     @State private var isShowingCopyConfirmation: Bool = false
-
-    @SceneStorage("resultString")
-    var resultString: String = ""
-    @SceneStorage("resultType")
-    private var resultType: String = ""
-    @SceneStorage("resultSymbolVersion")
-    private var resultSymbolVersion: String = ""
-    @SceneStorage("resultMaskPattern")
-    private var resultMaskPattern: String = ""
-    @SceneStorage("resultErrorCorrectionLevel")
-    private var resultErrorCorrectionLevel: String = ""
     @State var currentScan: ScanRecord? = nil
 
-    @EnvironmentObject var globalData: GlobalData
+    @StateObject var globalData: GlobalData = GlobalData()
 
     @SceneStorage("isShowingDetails")
     private var isShowingDetails = true
@@ -40,10 +34,15 @@ struct MainView: View {
     
     func handleScan(result: Result<ScanResult, ScanError>) {
         isShowingScanner = false
-       
+
+        var resultString: String = ""
+        var resultType: String = ""
+        var resultSymbolVersion: String = ""
+        var resultMaskPattern: String = ""
+        var resultErrorCorrectionLevel: String = ""
+
         switch result {
         case .success(let result):
-            
             resultString = result.string
             resultType = result.type.rawValue
             if let descriptor = result.descriptor as? CIQRCodeDescriptor {
@@ -85,17 +84,15 @@ struct MainView: View {
                     resultErrorCorrectionLevel = "Unknown"
                 }
 
-                // Append new scan to history
+                // Add new scan to history
                 let newRecord = ScanRecord(resultErrorCorrectionLevel: resultErrorCorrectionLevel, resultMaskPattern: resultMaskPattern, resultType: resultType, resultString: resultString, resultSymbolVersion: resultSymbolVersion, date: Date())
-                globalData.scanHistory.append(newRecord)
+                modelContext.insert(newRecord)
 
-                // Update index of current scan to display to the new scan
-                let newRecordIndex = globalData.scanHistory.endIndex - 1
-                globalData.currentScanIndex = newRecordIndex
-                currentScan = globalData.scanHistory[newRecordIndex]
-
-                // Prune size of scan history
-                globalData.pruneScanHistory()
+                // Update ID of current scan to display to the new scan
+                globalData.currentScanId = newRecord.id.uuidString
+                currentScan = scanHistory.first(where: { scan in
+                    scan.id == newRecord.id
+                })
             }
 
         case .failure(let error):
@@ -104,10 +101,18 @@ struct MainView: View {
     }
     
     func copyToClipboard(_ text: String) {
-        clipboard.string = resultString
+        clipboard.string = currentScan?.resultString ?? ""
         isShowingCopyConfirmation.toggle()
         withAnimation(.easeOut(duration: 2.0)) {
             isShowingCopyConfirmation.toggle()
+        }
+    }
+
+    func updateCurrentScan(with id: UUID) {
+        if let newCurrentScan = scanHistory.first(where: { scan in
+            scan.id == id
+        }) {
+            currentScan = newCurrentScan
         }
     }
 
@@ -161,30 +166,31 @@ struct MainView: View {
                 .border(overlayColor, width: 2)
             }
             .sheet(isPresented: $isShowingScanner) {
-                CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, simulatedData: "Berry cat is the cattest cat", completion: handleScan)
+                CodeScannerView(codeTypes: [.qr, .ean8, .ean13, .gs1DataBar, .gs1DataBarLimited, .gs1DataBarExpanded, .codabar, .code39, .code93, .code128, .code39Mod43, .itf14, .upce, .interleaved2of5], showViewfinder: true, completion: handleScan)
             }
             .sheet(isPresented: $isShowingHistory) {
                 HistoryView()
                     .environmentObject(globalData)
                     .onDisappear() {
-                        if let newIndex = globalData.currentScanIndex {
-                            currentScan = globalData.scanHistory[newIndex]
+                        if let newId = globalData.currentScanId {
+                            currentScan = scanHistory.first(where: { scan in
+                                scan.id.uuidString == newId
+                            })
                         }
                     }
             }
         }
         VStack(alignment: .center) {
-            Button(action: {
+            Button("Scan Code") {
                 isShowingScanner = true
-            }) {
-                Text("Scan Code")
-                    .font(.title)
             }
+            .font(.title)
             .padding(16)
+
             if currentScan != nil {
                 HStack(spacing: 16) {
                     Button("Copy Data") {
-                        copyToClipboard(resultString)
+                        copyToClipboard(currentScan?.resultString ?? "")
                     }
                     .font(.title2)
                     Spacer()
@@ -207,18 +213,7 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView(currentScan: GlobalData(createDemoHistory: true).scanHistory[0])
-        .environmentObject(GlobalData(createDemoHistory: true))
+    MainView(currentScan: GlobalData().createScanHistory().first)
+        .environmentObject(GlobalData())
 }
 
-extension Data {
-    struct HexEncodingOptions: OptionSet {
-        let rawValue: Int
-        static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
-    }
-
-    func hexEncodedString(options: HexEncodingOptions = []) -> String {
-        let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
-        return self.map { String(format: format, $0) }.joined()
-    }
-}
